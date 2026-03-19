@@ -1,0 +1,5 @@
+bin/
+data/
+dist/
+coverage.out
+*.test
