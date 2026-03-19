@@ -23,6 +23,11 @@ type Client struct {
 	httpClient *http.Client
 }
 
+type preparedRequest struct {
+	body            []byte
+	contentEncoding string
+}
+
 type DeliveryError struct {
 	Temporary  bool
 	StatusCode int
@@ -80,19 +85,13 @@ func (c *Client) Send(ctx context.Context, cfg *config.Runtime, batch payload.En
 		return &DeliveryError{Temporary: false, Err: err}
 	}
 
-	body := raw
-	contentEncoding := ""
+	activeRequest := preparedRequest{body: raw}
+	plainRequest := activeRequest
 	if cfg.Transport.Compression {
-		var compressed bytes.Buffer
-		gzipWriter := gzip.NewWriter(&compressed)
-		if _, err := gzipWriter.Write(raw); err != nil {
+		activeRequest, err = prepareCompressedRequest(raw)
+		if err != nil {
 			return &DeliveryError{Temporary: false, Err: err}
 		}
-		if err := gzipWriter.Close(); err != nil {
-			return &DeliveryError{Temporary: false, Err: err}
-		}
-		body = compressed.Bytes()
-		contentEncoding = "gzip"
 	}
 
 	backoff := cfg.Transport.InitialBackoff
@@ -107,55 +106,108 @@ func (c *Client) Send(ctx context.Context, cfg *config.Runtime, batch payload.En
 			}
 		}
 
-		reqCtx, cancel := context.WithTimeout(ctx, cfg.Transport.RequestTimeout)
-		req, err := http.NewRequestWithContext(reqCtx, http.MethodPost, cfg.CollectorURL, bytes.NewReader(body))
-		if err != nil {
-			cancel()
-			return &DeliveryError{Temporary: false, Err: err}
-		}
-		req.Header.Set("Content-Type", "application/json")
-		req.Header.Set("Authorization", "Bearer "+cfg.Token)
-		req.Header.Set("User-Agent", cfg.Transport.UserAgent)
-		req.Header.Set("X-HubPulse-Agent-ID", cfg.AgentID)
-		req.Header.Set("X-HubPulse-Config-Revision", cfg.ConfigRevision)
-		if contentEncoding != "" {
-			req.Header.Set("Content-Encoding", contentEncoding)
-		}
-
-		resp, err := c.httpClient.Do(req)
-		cancel()
-		if err != nil {
-			if attempt == cfg.Transport.MaxRetries {
-				return &DeliveryError{Temporary: true, Err: err}
-			}
-			continue
-		}
-
-		_, _ = io.Copy(io.Discard, io.LimitReader(resp.Body, 4096))
-		resp.Body.Close()
-
-		if resp.StatusCode >= 200 && resp.StatusCode < 300 {
+		err := c.sendPrepared(ctx, cfg, activeRequest)
+		if err == nil {
 			return nil
 		}
 
-		permanent := isPermanentStatus(resp.StatusCode)
-		if permanent {
-			return &DeliveryError{
-				Temporary:  false,
-				StatusCode: resp.StatusCode,
-				Err:        fmt.Errorf("collector returned %s", resp.Status),
+		if shouldRetryWithoutCompression(activeRequest, err) {
+			activeRequest = plainRequest
+			err = c.sendPrepared(ctx, cfg, activeRequest)
+			if err == nil {
+				return nil
 			}
 		}
-		if attempt == cfg.Transport.MaxRetries {
-			return &DeliveryError{
-				Temporary:  true,
-				StatusCode: resp.StatusCode,
-				Err:        fmt.Errorf("collector returned %s", resp.Status),
-			}
+
+		if !IsTemporary(err) || attempt == cfg.Transport.MaxRetries {
+			return err
 		}
 	}
 
 	return &DeliveryError{Temporary: true, Err: errors.New("delivery attempts exhausted")}
+}
+
+func (c *Client) sendPrepared(ctx context.Context, cfg *config.Runtime, reqBody preparedRequest) error {
+	reqCtx, cancel := context.WithTimeout(ctx, cfg.Transport.RequestTimeout)
+	defer cancel()
+
+	req, err := http.NewRequestWithContext(reqCtx, http.MethodPost, cfg.CollectorURL, bytes.NewReader(reqBody.body))
+	if err != nil {
+		return &DeliveryError{Temporary: false, Err: err}
+	}
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+cfg.Token)
+	req.Header.Set("User-Agent", cfg.Transport.UserAgent)
+	req.Header.Set("X-HubPulse-Agent-ID", cfg.AgentID)
+	req.Header.Set("X-HubPulse-Config-Revision", cfg.ConfigRevision)
+	if reqBody.contentEncoding != "" {
+		req.Header.Set("Content-Encoding", reqBody.contentEncoding)
+	}
+
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		return &DeliveryError{Temporary: true, Err: err}
+	}
+	defer resp.Body.Close()
+
+	responsePreview, _ := io.ReadAll(io.LimitReader(resp.Body, 4096))
+	if resp.StatusCode >= 200 && resp.StatusCode < 300 {
+		return nil
+	}
+
+	message := fmt.Sprintf("collector returned %s", resp.Status)
+	if detail := compactResponsePreview(responsePreview); detail != "" {
+		message = fmt.Sprintf("%s: %s", message, detail)
+	}
+
+	return &DeliveryError{
+		Temporary:  !isPermanentStatus(resp.StatusCode),
+		StatusCode: resp.StatusCode,
+		Err:        errors.New(message),
+	}
+}
+
+func prepareCompressedRequest(raw []byte) (preparedRequest, error) {
+	var compressed bytes.Buffer
+	gzipWriter := gzip.NewWriter(&compressed)
+	if _, err := gzipWriter.Write(raw); err != nil {
+		return preparedRequest{}, err
+	}
+	if err := gzipWriter.Close(); err != nil {
+		return preparedRequest{}, err
+	}
+	return preparedRequest{
+		body:            compressed.Bytes(),
+		contentEncoding: "gzip",
+	}, nil
+}
+
+func shouldRetryWithoutCompression(req preparedRequest, err error) bool {
+	if req.contentEncoding != "gzip" {
+		return false
+	}
+	var deliveryErr *DeliveryError
+	if !errors.As(err, &deliveryErr) {
+		return false
+	}
+	switch deliveryErr.StatusCode {
+	case http.StatusBadRequest, http.StatusUnsupportedMediaType:
+		return true
+	default:
+		return false
+	}
+}
+
+func compactResponsePreview(body []byte) string {
+	preview := strings.TrimSpace(string(body))
+	if preview == "" {
+		return ""
+	}
+	preview = strings.Join(strings.Fields(preview), " ")
+	if len(preview) > 240 {
+		return preview[:240] + "..."
+	}
+	return preview
 }
 
 func isPermanentStatus(statusCode int) bool {
