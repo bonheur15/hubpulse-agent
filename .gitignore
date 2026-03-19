@@ -3,3 +3,5 @@ data/
 dist/
 coverage.out
 *.test
+hubpulse-agent
+hubpulse-agent.exe
