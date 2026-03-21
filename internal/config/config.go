@@ -209,6 +209,7 @@ func DefaultFile() File {
 			ExcludePatterns: []string{},
 		},
 		Services: []ServiceFile{},
+		Logs:     []LogFile{},
 		Buffer: BufferFile{
 			Enabled:       boolPtr(true),
 			Directory:     defaultSpoolDir,
