@@ -19,8 +19,7 @@ COLLECTOR="https://collector.hubpulse.space/ingest"
 BIN_DIR="/usr/local/bin"
 CONFIG_DIR="/etc/hubpulse-agent"
 CONFIG_FILE="$CONFIG_DIR/config.json"
-# Update these for your specific deployment
-GITHUB_REPO="OWNER/REPO"
+GITHUB_REPO="bonheur15/hubpulse-agent"
 REPO_URL="https://releases.hubpulse.space/agent/latest"
 
 # Parse arguments
