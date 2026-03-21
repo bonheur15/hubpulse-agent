@@ -3,7 +3,7 @@ name: Build and Release HubPulse Agent
 on:
   push:
     tags:
-      - "v*"
+      - 'v*'
 
 permissions:
   contents: write
@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        go-version: ["1.24"]
+        go-version: ['1.24']
         os: [linux, darwin, windows]
         arch: [amd64, arm64]
         exclude:
@@ -33,18 +33,13 @@ jobs:
           cache-dependency-path: go.sum
 
       - name: Build Binary
-        working-directory: .
-        env:
-          GOOS: ${{ matrix.os }}
-          GOARCH: ${{ matrix.arch }}
-          CGO_ENABLED: 0
         run: |
-          mkdir -p ../dist
+          mkdir -p dist
           BINARY_NAME="hubpulse-agent-${{ matrix.os }}-${{ matrix.arch }}"
           if [ "${{ matrix.os }}" = "windows" ]; then
             BINARY_NAME="${BINARY_NAME}.exe"
           fi
-          go build -v -ldflags="-s -w" -o "../dist/${BINARY_NAME}" ./cmd/hubpulse-agent/main.go
+          go build -v -ldflags="-s -w" -o "dist/${BINARY_NAME}" ./cmd/hubpulse-agent/main.go
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
@@ -53,11 +48,11 @@ jobs:
           path: dist/
           retention-days: 1
 
-      release:
-      name: Create GitHub Release
-      needs: build
-      runs-on: ubuntu-latest
-      steps:
+  release:
+    name: Create GitHub Release
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
       - name: Check out code
         uses: actions/checkout@v4
 
