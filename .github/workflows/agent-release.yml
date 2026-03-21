@@ -39,6 +39,7 @@ jobs:
           GOARCH: ${{ matrix.arch }}
           CGO_ENABLED: 0
         run: |
+          mkdir -p ../dist
           BINARY_NAME="hubpulse-agent-${{ matrix.os }}-${{ matrix.arch }}"
           if [ "${{ matrix.os }}" = "windows" ]; then
             BINARY_NAME="${BINARY_NAME}.exe"
@@ -49,14 +50,14 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: binaries-${{ matrix.os }}-${{ matrix.arch }}
-          path: dist/*
+          path: dist/
           retention-days: 1
 
-  release:
-    name: Create GitHub Release
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
+      release:
+      name: Create GitHub Release
+      needs: build
+      runs-on: ubuntu-latest
+      steps:
       - name: Check out code
         uses: actions/checkout@v4
 
@@ -67,9 +68,9 @@ jobs:
           merge-multiple: true
 
       - name: Generate Checksums
-        working-directory: dist
         run: |
-          sha256sum * > checksums.txt
+          cd dist
+          sha256sum hubpulse-agent-* > checksums.txt
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
