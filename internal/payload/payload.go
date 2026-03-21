@@ -23,7 +23,16 @@ type Snapshot struct {
 	System     *SystemMetrics       `json:"system,omitempty"`
 	Processes  []ProcessStat        `json:"processes,omitempty"`
 	Services   []ServiceCheckResult `json:"services,omitempty"`
+	Logs       []LogEntry           `json:"logs,omitempty"`
 	Warnings   []string             `json:"warnings,omitempty"`
+}
+
+type LogEntry struct {
+	CapturedAt time.Time `json:"captured_at"`
+	Source     string    `json:"source"`
+	Path       string    `json:"path"`
+	Message    string    `json:"message"`
+	Level      string    `json:"level,omitempty"`
 }
 
 type SystemMetrics struct {

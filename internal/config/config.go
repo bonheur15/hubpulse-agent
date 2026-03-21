@@ -32,6 +32,7 @@ type File struct {
 	Collection   CollectionFile    `json:"collection"`
 	Processes    ProcessFile       `json:"processes"`
 	Services     []ServiceFile     `json:"services"`
+	Logs         []LogFile         `json:"logs"`
 	Buffer       BufferFile        `json:"buffer"`
 	Transport    TransportFile     `json:"transport"`
 	Logging      LoggingFile       `json:"logging"`
@@ -96,6 +97,12 @@ type LoggingFile struct {
 	Format string `json:"format"`
 }
 
+type LogFile struct {
+	Name    string `json:"name"`
+	Path    string `json:"path"`
+	Enabled *bool  `json:"enabled"`
+}
+
 type Runtime struct {
 	AgentID        string
 	Token          string
@@ -105,12 +112,19 @@ type Runtime struct {
 	Collection     CollectionRuntime
 	Processes      ProcessRuntime
 	Services       []ServiceRuntime
+	Logs           []LogRuntime
 	Buffer         BufferRuntime
 	Transport      TransportRuntime
 	Logging        LoggingRuntime
 	ConfigPath     string
 	ConfigRevision string
 	Warnings       []string
+}
+
+type LogRuntime struct {
+	Name    string
+	Path    string
+	Enabled bool
 }
 
 type CollectionRuntime struct {
@@ -400,6 +414,21 @@ func runtimeFromFile(fileCfg File, source string) (*Runtime, error) {
 	}
 	warnings = append(warnings, serviceWarnings...)
 
+	logs := make([]LogRuntime, 0, len(fileCfg.Logs))
+	for _, l := range fileCfg.Logs {
+		if l.Enabled != nil && !*l.Enabled {
+			continue
+		}
+		if sanitizeString(l.Path) == "" {
+			continue
+		}
+		logs = append(logs, LogRuntime{
+			Name:    sanitizeString(l.Name),
+			Path:    sanitizeString(l.Path),
+			Enabled: true,
+		})
+	}
+
 	token := strings.TrimSpace(fileCfg.Token)
 	if token == "" {
 		warnings = append(warnings, "token is empty; delivery to the collector will be disabled until a token is configured")
@@ -414,6 +443,7 @@ func runtimeFromFile(fileCfg File, source string) (*Runtime, error) {
 		Collection:   collection,
 		Processes:    processes,
 		Services:     services,
+		Logs:         logs,
 		Buffer:       bufferRuntime,
 		Transport:    transport,
 		Logging:      logging,

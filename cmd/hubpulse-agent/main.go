@@ -40,6 +40,8 @@ func run(args []string) error {
 		return initConfigCommand(args[1:])
 	case "update-config":
 		return updateConfigCommand(args[1:])
+	case "self-update":
+		return app.SelfUpdate()
 	default:
 		return fmt.Errorf("unsupported command %q", args[0])
 	}
@@ -55,6 +57,7 @@ func printUsage() {
 	fmt.Println("  hubpulse-agent print-default-config")
 	fmt.Println("  hubpulse-agent init-config [--config PATH] [--force]")
 	fmt.Println("  hubpulse-agent update-config [--config PATH] <base64-config>")
+	fmt.Println("  hubpulse-agent self-update")
 	fmt.Println("  hubpulse-agent version")
 }
 

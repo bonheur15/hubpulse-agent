@@ -31,6 +31,7 @@ type Agent struct {
 	system     *collector.SystemCollector
 	process    *collector.ProcessCollector
 	services   *collector.ServiceCollector
+	logs       *collector.LogCollector
 	sender     *sender.Client
 }
 
@@ -50,9 +51,11 @@ type snapshotCache struct {
 	hasSystem       bool
 	processes       []payload.ProcessStat
 	services        []payload.ServiceCheckResult
+	logs            []payload.LogEntry
 	systemWarnings  []string
 	processWarnings []string
 	serviceWarnings []string
+	logWarnings     []string
 	dirty           bool
 }
 
@@ -67,6 +70,7 @@ func NewAgent(logger *slog.Logger, levelVar *slog.LevelVar, cfg *config.Runtime,
 		system:     collector.NewSystemCollector(),
 		process:    collector.NewProcessCollector(),
 		services:   collector.NewServiceCollector(),
+		logs:       collector.NewLogCollector(),
 		sender:     sender.New(),
 	}
 }
@@ -116,6 +120,7 @@ func Run(ctx context.Context, configPath string, once bool, printSnapshot bool) 
 	runLoop("system", agent.systemLoop)
 	runLoop("process", agent.processLoop)
 	runLoop("services", agent.serviceLoop)
+	runLoop("logs", agent.logsLoop)
 	runLoop("flush", agent.flushLoop)
 	runLoop("drain", agent.drainLoop)
 	runLoop("reload", agent.reloadLoop)
@@ -136,13 +141,15 @@ func (a *Agent) CollectSnapshot(ctx context.Context) (payload.Snapshot, error) {
 	systemMetrics, systemWarnings := a.system.Collect(ctx, cfg)
 	processes, processWarnings := a.process.Collect(ctx, cfg)
 	services, _ := a.services.CollectDue(ctx, cfg)
+	logs, logWarnings := a.logs.Collect(ctx, cfg)
 
 	return payload.Snapshot{
 		CapturedAt: time.Now().UTC(),
 		System:     &systemMetrics,
 		Processes:  processes,
 		Services:   services,
-		Warnings:   mergeWarnings(cfg.Warnings, systemWarnings, processWarnings),
+		Logs:       logs,
+		Warnings:   mergeWarnings(cfg.Warnings, systemWarnings, processWarnings, logWarnings),
 	}, nil
 }
 
@@ -226,6 +233,22 @@ func (a *Agent) serviceLoop(ctx context.Context) {
 			results, changed := a.services.CollectDue(ctx, cfg)
 			if changed {
 				a.cache.setServices(results, nil)
+			}
+		})
+	}
+}
+
+func (a *Agent) logsLoop(ctx context.Context) {
+	for {
+		cfg := a.currentConfig()
+		// Logs are collected fairly frequently if configured
+		if err := sleepWithContext(ctx, 10*time.Second); err != nil {
+			return
+		}
+		a.safeStep("logs", func() {
+			logs, warnings := a.logs.Collect(ctx, cfg)
+			if len(logs) > 0 || len(warnings) > 0 {
+				a.cache.setLogs(logs, warnings)
 			}
 		})
 	}
@@ -570,6 +593,18 @@ func (c *snapshotCache) setServices(services []payload.ServiceCheckResult, warni
 	c.dirty = true
 }
 
+func (c *snapshotCache) setLogs(logs []payload.LogEntry, warnings []string) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	c.logs = append(c.logs, logs...)
+	c.logWarnings = append([]string(nil), warnings...)
+	// Limit logs in cache
+	if len(c.logs) > 1000 {
+		c.logs = c.logs[len(c.logs)-1000:]
+	}
+	c.dirty = true
+}
+
 func (c *snapshotCache) popSnapshot(configWarnings []string) (payload.Snapshot, bool) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
@@ -580,7 +615,8 @@ func (c *snapshotCache) popSnapshot(configWarnings []string) (payload.Snapshot, 
 		CapturedAt: time.Now().UTC(),
 		Processes:  append([]payload.ProcessStat(nil), c.processes...),
 		Services:   append([]payload.ServiceCheckResult(nil), c.services...),
-		Warnings:   mergeWarnings(configWarnings, c.systemWarnings, c.processWarnings, c.serviceWarnings),
+		Logs:       append([]payload.LogEntry(nil), c.logs...),
+		Warnings:   mergeWarnings(configWarnings, c.systemWarnings, c.processWarnings, c.serviceWarnings, c.logWarnings),
 	}
 	if c.hasSystem {
 		systemCopy := c.system
@@ -589,6 +625,8 @@ func (c *snapshotCache) popSnapshot(configWarnings []string) (payload.Snapshot, 
 		systemCopy.Network.Interfaces = append([]payload.InterfaceIO(nil), c.system.Network.Interfaces...)
 		snapshot.System = &systemCopy
 	}
+	c.logs = nil
+	c.logWarnings = nil
 	c.dirty = false
 	return snapshot, true
 }
