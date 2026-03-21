@@ -19,6 +19,8 @@ COLLECTOR="https://collector.hubpulse.space/ingest"
 BIN_DIR="/usr/local/bin"
 CONFIG_DIR="/etc/hubpulse-agent"
 CONFIG_FILE="$CONFIG_DIR/config.json"
+# Update these for your specific deployment
+GITHUB_REPO="OWNER/REPO"
 REPO_URL="https://releases.hubpulse.space/agent/latest"
 
 # Parse arguments
@@ -77,16 +79,23 @@ echo -e "Detecting system: ${GREEN}$OS/$ARCH${NC}"
 # Download binary
 BINARY_NAME="hubpulse-agent-$OS-$ARCH"
 DOWNLOAD_URL="$REPO_URL/$BINARY_NAME"
+GITHUB_URL="https://github.com/$GITHUB_REPO/releases/latest/download/$BINARY_NAME"
 
 echo -e "Downloading HubPulse Agent..."
 # In a real scenario, we would download from DOWNLOAD_URL
-# For now, we'll check if a local build exists for testing, or print the intended action
+# For now, we'll check if a local build exists for testing
 if [ -f "./hubpulse-agent" ]; then
     echo "Using local hubpulse-agent binary for installation."
     cp ./hubpulse-agent "$BIN_DIR/hubpulse-agent"
 else
-    echo "Fetching binary from $DOWNLOAD_URL..."
-    curl -sSL "$DOWNLOAD_URL" -o "$BIN_DIR/hubpulse-agent" || (echo -e "${RED}Failed to download binary${NC}" && exit 1)
+    echo "Attempting to fetch binary from $DOWNLOAD_URL..."
+    if ! curl -sSL "$DOWNLOAD_URL" -o "$BIN_DIR/hubpulse-agent"; then
+        echo -e "${BLUE}Notice: Failed to fetch from custom URL. Falling back to GitHub...${NC}"
+        if ! curl -sSL "$GITHUB_URL" -o "$BIN_DIR/hubpulse-agent"; then
+            echo -e "${RED}Error: Failed to download binary from all sources.${NC}"
+            exit 1
+        fi
+    fi
 fi
 
 chmod +x "$BIN_DIR/hubpulse-agent"
