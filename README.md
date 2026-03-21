@@ -1,4 +1,4 @@
-# HubPulse Agent 🚀
+# HubPulse Agent
 
 **Lightweight. Secure. Resilient.**
 
@@ -6,7 +6,7 @@ The HubPulse Agent is a high-performance Go-based monitoring binary designed to 
 
 ---
 
-## ⚡ Quick Install
+## Quick Install
 
 Install and start the agent with a single command:
 
@@ -18,27 +18,27 @@ This script automatically detects your architecture (amd64/arm64), installs the 
 
 ---
 
-## ✨ Core Features
+## Core Features
 
-### 🔒 Security First
+### Security First
 - **Zero Open Ports**: The agent only makes outbound HTTPS connections. It is invisible to external scanners.
 - **Token Authentication**: Secure, unique tokens for every server identity.
 - **Minimal Footprint**: Low CPU and RAM overhead, written in memory-safe Go.
 
-### 📊 Comprehensive Monitoring
+### Comprehensive Monitoring
 - **System Metrics**: CPU (load/usage), Memory, Disk I/O, Network throughput, and Uptime.
 - **Process Tracking**: Monitor top resource-consuming processes with configurable filters.
 - **Internal Service Probes**: Perform HTTP(S) and TCP health checks on internal services (e.g., databases, local APIs) that aren't exposed to the internet.
 - **Log Collection**: Tail and forward system or application logs with configurable filtering and size limits.
 
-### 🛡️ Resilience
+### Resilience
 - **Offline Buffering**: If the HubPulse collector is unreachable, the agent stores metrics locally in an encrypted spool and syncs them automatically when connectivity returns.
 - **Self-Healing**: Runs as a systemd service with automatic restarts on failure.
 - **Safe Config**: Validates and sanitizes configurations; falls back to safe defaults if a config file is corrupt.
 
 ---
 
-## 🛠️ Command Line Interface
+## Command Line Interface
 
 The agent provides a powerful CLI for local management:
 
@@ -53,7 +53,7 @@ The agent provides a powerful CLI for local management:
 
 ---
 
-## ⚙️ Configuration Example (`config.json`)
+## Configuration Example (`config.json`)
 
 The agent is typically managed remotely from the HubPulse Dashboard, but you can manually edit `/etc/hubpulse-agent/config.json`:
 
@@ -86,7 +86,7 @@ The agent is typically managed remotely from the HubPulse Dashboard, but you can
 
 ---
 
-## 🚀 Lifecycle Management
+## Lifecycle Management
 
 **Restart the agent:**
 ```bash
@@ -105,4 +105,4 @@ sudo systemctl restart hubpulse-agent
 ```
 
 ---
-Built with ❤️ by the HubPulse Team.
+Built by the HubPulse Team.
