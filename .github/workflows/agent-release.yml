@@ -33,7 +33,7 @@ jobs:
           cache-dependency-path: go.sum
 
       - name: Build Binary
-        working-directory: agent
+        working-directory: .
         env:
           GOOS: ${{ matrix.os }}
           GOARCH: ${{ matrix.arch }}
