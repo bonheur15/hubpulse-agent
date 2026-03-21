@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HubPulse Agent | Lightweight & Secure Monitoring</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+        
+        :root {
+            --brand: #ffaa00;
+            --brand-dark: #cc8800;
+            --bg: #09090b;
+            --panel: #18181b;
+            --border: #27272a;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg);
+            color: #f4f4f5;
+            overflow-x: hidden;
+        }
+
+        .mono { font-family: 'JetBrains Mono', monospace; }
+
+        .tech-panel {
+            background-color: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            transition: all 0.2s ease;
+        }
+
+        .tech-panel:hover {
+            border-color: #3f3f46;
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, #fff 0%, #a1a1aa 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .glow-brand {
+            box-shadow: 0 0 30px rgba(255, 170, 0, 0.15);
+        }
+
+        .copy-button {
+            transition: transform 0.1s active;
+        }
+
+        .copy-button:active {
+            transform: scale(0.95);
+        }
+
+        .animate-float {
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+
+        .bg-grid {
+            background-image: radial-gradient(var(--border) 1px, transparent 0);
+            background-size: 40px 40px;
+        }
+    </style>
+</head>
+<body class="bg-grid">
+
+    <!-- Header -->
+    <header class="max-w-7xl mx-auto px-6 py-8 flex items-center justify-between relative z-10">
+        <div class="flex items-center gap-3 group">
+            <div class="size-10 bg-[var(--brand)] rounded-xl flex items-center justify-center shadow-[0_0_20px_rgba(255,170,0,0.3)] group-hover:scale-110 transition-transform cursor-pointer">
+                <i class="fas fa-shield-halved text-black text-xl"></i>
+            </div>
+            <div>
+                <span class="text-xl font-extrabold tracking-tighter uppercase leading-none block">HubPulse</span>
+                <span class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mt-1 block">Monitoring Fleet</span>
+            </div>
+        </div>
+        <nav class="hidden md:flex gap-8 text-sm font-bold uppercase tracking-widest text-zinc-400">
+            <a href="#features" class="hover:text-[var(--brand)] transition-colors">Features</a>
+            <a href="#install" class="hover:text-[var(--brand)] transition-colors">Install</a>
+            <a href="https://hubpulse.space" class="hover:text-[var(--brand)] transition-colors">Platform</a>
+        </nav>
+        <a href="https://hubpulse.space/register" class="bg-white text-black text-xs font-bold uppercase tracking-widest px-6 py-3 rounded-full hover:bg-[var(--brand)] transition-all">Get Started</a>
+    </header>
+
+    <!-- Hero -->
+    <main class="max-w-5xl mx-auto px-6 py-20 md:py-32 relative text-center">
+        <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-[var(--brand)]/10 blur-[120px] -z-10 rounded-full"></div>
+        
+        <h1 class="text-5xl md:text-7xl font-extrabold tracking-tight mb-6 gradient-text leading-[1.1]">
+            The Invisible Guardian <br> for Your Servers
+        </h1>
+        <p class="text-lg md:text-xl text-zinc-400 mb-12 max-w-2xl mx-auto leading-relaxed">
+            Lightweight Go-based agent that monitors system metrics, internal services, and logs without exposing a single inbound port.
+        </p>
+
+        <!-- Command Line -->
+        <div id="install" class="max-w-3xl mx-auto mb-16 group">
+            <div class="tech-panel p-2 bg-[#000] border-[#27272a] glow-brand relative overflow-hidden">
+                <div class="flex items-center gap-2 px-4 py-2 border-b border-[#18181b] mb-2">
+                    <div class="flex gap-1.5">
+                        <div class="size-2.5 rounded-full bg-red-500/30"></div>
+                        <div class="size-2.5 rounded-full bg-amber-500/30"></div>
+                        <div class="size-2.5 rounded-full bg-emerald-500/30"></div>
+                    </div>
+                    <span class="text-[10px] font-bold text-zinc-600 uppercase tracking-widest ml-2">Quick Install (Linux)</span>
+                </div>
+                <div class="flex items-center justify-between p-4 md:p-6 gap-4">
+                    <div class="mono text-xs md:text-sm text-zinc-300 text-left overflow-x-auto whitespace-nowrap">
+                        <span class="text-[var(--brand)]">$</span> curl -sSL https://install.hubpulse.space | sudo bash -s -- --token=<span class="text-zinc-500 italic">YOUR_TOKEN</span>
+                    </div>
+                    <button onclick="copyInstallCommand()" class="copy-button bg-zinc-800 hover:bg-zinc-700 text-zinc-300 p-3 rounded-lg transition-colors flex items-center gap-2 shrink-0">
+                        <i id="copy-icon" class="fas fa-copy"></i>
+                        <span id="copy-text" class="text-[10px] font-bold uppercase tracking-widest">Copy</span>
+                    </button>
+                </div>
+                <!-- Decoration -->
+                <div class="absolute -right-10 -bottom-10 size-40 bg-[var(--brand)]/5 blur-3xl rounded-full"></div>
+            </div>
+            <p class="mt-4 text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Supports Ubuntu, Debian, CentOS, RHEL, and more (amd64 / arm64)</p>
+        </div>
+
+        <!-- Features Grid -->
+        <section id="features" class="grid md:grid-cols-3 gap-6 text-left">
+            <div class="tech-panel p-8">
+                <div class="size-12 rounded-xl bg-zinc-800 flex items-center justify-center mb-6">
+                    <i class="fas fa-microchip text-[var(--brand)] text-xl"></i>
+                </div>
+                <h3 class="text-lg font-bold mb-3">System Metrics</h3>
+                <p class="text-sm text-zinc-500 leading-relaxed">High-resolution tracking of CPU, RAM, Disk I/O, and Network throughput with minimal overhead.</p>
+            </div>
+            <div class="tech-panel p-8">
+                <div class="size-12 rounded-xl bg-zinc-800 flex items-center justify-center mb-6">
+                    <i class="fas fa-network-wired text-[var(--brand)] text-xl"></i>
+                </div>
+                <h3 class="text-lg font-bold mb-3">Service Probes</h3>
+                <p class="text-sm text-zinc-500 leading-relaxed">Perform internal HTTP and TCP health checks on services not exposed to the public internet.</p>
+            </div>
+            <div class="tech-panel p-8">
+                <div class="size-12 rounded-xl bg-zinc-800 flex items-center justify-center mb-6">
+                    <i class="fas fa-file-lines text-[var(--brand)] text-xl"></i>
+                </div>
+                <h3 class="text-lg font-bold mb-3">Log Forwarding</h3>
+                <p class="text-sm text-zinc-500 leading-relaxed">Forward system and application logs to the dashboard with local tailing and smart buffering.</p>
+            </div>
+        </section>
+    </main>
+
+    <!-- Detailed Section -->
+    <section class="max-w-5xl mx-auto px-6 py-20 border-t border-zinc-900">
+        <div class="grid md:grid-cols-2 gap-16 items-center">
+            <div class="space-y-6">
+                <h2 class="text-3xl font-extrabold tracking-tight">Security by Design</h2>
+                <p class="text-zinc-400 leading-relaxed">
+                    Unlike traditional monitoring tools that require you to open ports or install complex VPNs, HubPulse Agent uses an <strong>outbound-only</strong> architecture. 
+                </p>
+                <ul class="space-y-4">
+                    <li class="flex gap-3">
+                        <i class="fas fa-check-circle text-emerald-500 mt-1"></i>
+                        <span class="text-sm text-zinc-300"><strong>Zero Inbound:</strong> Invisible to bots and attackers.</span>
+                    </li>
+                    <li class="flex gap-3">
+                        <i class="fas fa-check-circle text-emerald-500 mt-1"></i>
+                        <span class="text-sm text-zinc-300"><strong>Local Buffering:</strong> Encrypted local spool ensures no data loss during network outages.</span>
+                    </li>
+                    <li class="flex gap-3">
+                        <i class="fas fa-check-circle text-emerald-500 mt-1"></i>
+                        <span class="text-sm text-zinc-300"><strong>Self-Updating:</strong> Stay secure with automated binary lifecycle management.</span>
+                    </li>
+                </ul>
+            </div>
+            <div class="tech-panel p-4 bg-black/50 backdrop-blur-sm mono text-[11px] leading-relaxed">
+                <div class="flex items-center gap-2 mb-4 border-b border-zinc-800 pb-2">
+                    <i class="fas fa-code text-zinc-600"></i>
+                    <span class="text-zinc-500 uppercase tracking-widest font-bold">hubpulse-agent.json</span>
+                </div>
+                <div class="text-zinc-400">
+                    <span class="text-blue-400">{</span><br>
+                    &nbsp;&nbsp;<span class="text-emerald-400">"agent_id"</span>: <span class="text-amber-400">"prod-srv-01"</span>,<br>
+                    &nbsp;&nbsp;<span class="text-emerald-400">"token"</span>: <span class="text-amber-400">"hp_..."</span>,<br>
+                    &nbsp;&nbsp;<span class="text-emerald-400">"services"</span>: <span class="text-blue-400">[</span><br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;<span class="text-blue-400">{</span><br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="text-emerald-400">"name"</span>: <span class="text-amber-400">"DB Cluster"</span>,<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="text-emerald-400">"type"</span>: <span class="text-amber-400">"tcp"</span>,<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="text-emerald-400">"target"</span>: <span class="text-amber-400">"localhost:5432"</span><br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;<span class="text-blue-400">}</span><br>
+                    &nbsp;&nbsp;<span class="text-blue-400">]</span>,<br>
+                    &nbsp;&nbsp;<span class="text-emerald-400">"logs"</span>: <span class="text-blue-400">[</span><br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;<span class="text-blue-400">{</span> <span class="text-emerald-400">"name"</span>: <span class="text-amber-400">"auth"</span>, <span class="text-emerald-400">"path"</span>: <span class="text-amber-400">"/var/log/auth.log"</span> <span class="text-blue-400">}</span><br>
+                    &nbsp;&nbsp;<span class="text-blue-400">]</span><br>
+                    <span class="text-blue-400">}</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="max-w-7xl mx-auto px-6 py-20 border-t border-zinc-900 text-center">
+        <div class="flex items-center justify-center gap-3 mb-8 opacity-50 grayscale">
+            <div class="size-8 bg-zinc-600 rounded flex items-center justify-center">
+                <i class="fas fa-shield-halved text-black"></i>
+            </div>
+            <span class="text-sm font-extrabold tracking-tighter uppercase leading-none">HubPulse Agent</span>
+        </div>
+        <p class="text-xs font-bold text-zinc-600 uppercase tracking-[0.2em]">&copy; 2026 HubPulse Systems. Built for resilient engineering.</p>
+    </footer>
+
+    <script>
+        function copyInstallCommand() {
+            const cmd = 'curl -sSL https://install.hubpulse.space | sudo bash -s -- --token=YOUR_TOKEN';
+            navigator.clipboard.writeText(cmd).then(() => {
+                const icon = document.getElementById('copy-icon');
+                const text = document.getElementById('copy-text');
+                
+                icon.classList.remove('fa-copy');
+                icon.classList.add('fa-check', 'text-emerald-500');
+                text.innerText = 'Copied!';
+                text.classList.add('text-emerald-500');
+
+                setTimeout(() => {
+                    icon.classList.remove('fa-check', 'text-emerald-500');
+                    icon.classList.add('fa-copy');
+                    text.innerText = 'Copy';
+                    text.classList.remove('text-emerald-500');
+                }, 2000);
+            });
+        }
+    </script>
+</body>
+</html>
