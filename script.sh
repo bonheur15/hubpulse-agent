@@ -20,7 +20,7 @@ BIN_DIR="/usr/local/bin"
 CONFIG_DIR="/etc/hubpulse-agent"
 CONFIG_FILE="$CONFIG_DIR/config.json"
 GITHUB_REPO="bonheur15/hubpulse-agent"
-REPO_URL="https://releases.hubpulse.space/agent/latest"
+REPO_URL="https://github.com/bonheur15/hubpulse-agent/releases/latest/download"
 
 # Parse arguments
 while [[ $# -gt 0 ]]; do
