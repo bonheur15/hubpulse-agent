@@ -11,7 +11,7 @@ The HubPulse Agent is a high-performance Go-based monitoring binary designed to 
 Install and start the agent with a single command:
 
 ```bash
-curl -sSL https://install.HubPulse.space/script.she | sudo bash -s -- --token=YOUR_AGENT_TOKEN
+curl -sSL https://install.HubPulse.space/script.sh | sudo bash -s -- --token=YOUR_AGENT_TOKEN
 ```
 
 This script automatically detects your architecture (amd64/arm64), installs the binary to `/usr/local/bin`, configures the systemd service, and starts the agent.
@@ -61,7 +61,7 @@ The agent is typically managed remotely from the HubPulse Dashboard, but you can
 {
   "agent_id": "production-web-01",
   "token": "hp_...",
-  "collector_url": "https://collector.hubpulse.space/api/ingest",
+  "collector_url": "https://collector.hubpulse.space/ingest",
   "collection": {
     "metrics_interval": "15s",
     "service_interval": "30s"
@@ -102,6 +102,11 @@ journalctl -u hubpulse-agent -f
 ```bash
 sudo hubpulse-agent self-update
 sudo systemctl restart hubpulse-agent
+```
+
+**Uninstall the agent:**
+```bash
+curl -sSL https://install.HubPulse.space/uninstall.sh | sudo bash
 ```
 
 ---
