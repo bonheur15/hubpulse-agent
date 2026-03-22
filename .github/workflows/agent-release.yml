@@ -73,6 +73,7 @@ jobs:
           files: |
             dist/hubpulse-agent-*
             dist/checksums.txt
+            script.sh
           body_path: README.md
           draft: false
           prerelease: false

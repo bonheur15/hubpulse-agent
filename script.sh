@@ -67,33 +67,41 @@ if [ "$OS" != "linux" ]; then
   exit 1
 fi
 
-# Check for root
-if [ "$EUID" -ne 0 ]; then
+# Check for root using multiple methods
+if [ "$(id -u)" -ne 0 ] && [ "$EUID" -ne 0 ]; then
   echo -e "${RED}Please run as root (use sudo).${NC}"
   exit 1
 fi
 
 echo -e "Detecting system: ${GREEN}$OS/$ARCH${NC}"
 
+# Ensure bin directory exists
+mkdir -p "$BIN_DIR"
+
 # Download binary
 BINARY_NAME="hubpulse-agent-$OS-$ARCH"
+TMP_FILE=$(mktemp)
 DOWNLOAD_URL="$REPO_URL/$BINARY_NAME"
 GITHUB_URL="https://github.com/$GITHUB_REPO/releases/latest/download/$BINARY_NAME"
 
 echo -e "Downloading HubPulse Agent..."
-# In a real scenario, we would download from DOWNLOAD_URL
-# For now, we'll check if a local build exists for testing
-if [ -f "./hubpulse-agent" ]; then
+
+echo "Attempting to fetch binary from $DOWNLOAD_URL..."
+if curl -sSL --fail "$DOWNLOAD_URL" -o "$TMP_FILE" 2>/dev/null; then
+    echo "Download successful, installing..."
+    mv "$TMP_FILE" "$BIN_DIR/hubpulse-agent"
+elif [ -f "./hubpulse-agent" ]; then
     echo "Using local hubpulse-agent binary for installation."
     cp ./hubpulse-agent "$BIN_DIR/hubpulse-agent"
 else
-    echo "Attempting to fetch binary from $DOWNLOAD_URL..."
-    if ! curl -sSL "$DOWNLOAD_URL" -o "$BIN_DIR/hubpulse-agent"; then
-        echo -e "${BLUE}Notice: Failed to fetch from custom URL. Falling back to GitHub...${NC}"
-        if ! curl -sSL "$GITHUB_URL" -o "$BIN_DIR/hubpulse-agent"; then
-            echo -e "${RED}Error: Failed to download binary from all sources.${NC}"
-            exit 1
-        fi
+    echo -e "${BLUE}Notice: Failed to fetch from custom URL. Falling back to GitHub...${NC}"
+    if curl -sSL --fail "$GITHUB_URL" -o "$TMP_FILE" 2>/dev/null; then
+        echo "Download successful, installing..."
+        mv "$TMP_FILE" "$BIN_DIR/hubpulse-agent"
+    else
+        rm -f "$TMP_FILE"
+        echo -e "${RED}Error: Failed to download binary from all sources.${NC}"
+        exit 1
     fi
 fi
 
