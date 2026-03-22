@@ -2,7 +2,7 @@
 set -e
 
 # HubPulse Agent Install Script
-# Usage: curl -sSL https://install.hubpulse.space | bash -s -- --token=YOUR_TOKEN --collector=COLLECTOR_URL
+# Usage: curl -sSL https://install.HubPulse.space/script.sh | bash -s -- --token=YOUR_TOKEN --collector=COLLECTOR_URL
 
 # Colors for output
 RED='\033[0;31m'
