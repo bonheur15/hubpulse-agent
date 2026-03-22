@@ -15,7 +15,7 @@ echo "--------------------------------"
 
 # Default values
 TOKEN=""
-COLLECTOR="https://collector.hubpulse.space/ingest"
+COLLECTOR="https://collector.hubpulse.space/api/ingest"
 BIN_DIR="/usr/local/bin"
 CONFIG_DIR="/etc/hubpulse-agent"
 CONFIG_FILE="$CONFIG_DIR/config.json"

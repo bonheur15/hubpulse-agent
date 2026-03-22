@@ -18,7 +18,7 @@ import (
 )
 
 const (
-	DefaultCollectorURL = "https://collector.HubPulse.space/ingest"
+	DefaultCollectorURL = "https://collector.HubPulse.space/api/ingest"
 	DefaultConfigPath   = "/etc/hubpulse-agent/config.json"
 	defaultSpoolDir     = "data/spool"
 )

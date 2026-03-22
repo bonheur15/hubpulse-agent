@@ -61,7 +61,7 @@ The agent is typically managed remotely from the HubPulse Dashboard, but you can
 {
   "agent_id": "production-web-01",
   "token": "hp_...",
-  "collector_url": "https://collector.hubpulse.space/ingest",
+  "collector_url": "https://collector.hubpulse.space/api/ingest",
   "collection": {
     "metrics_interval": "15s",
     "service_interval": "30s"
