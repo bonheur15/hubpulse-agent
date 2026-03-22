@@ -11,7 +11,7 @@ The HubPulse Agent is a high-performance Go-based monitoring binary designed to 
 Install and start the agent with a single command:
 
 ```bash
-curl -sSL https://install.hubpulse.space | sudo bash -s -- --token=YOUR_AGENT_TOKEN
+curl -sSL https://install.HubPulse.space/script.sh | sudo bash -s -- --token=YOUR_AGENT_TOKEN
 ```
 
 This script automatically detects your architecture (amd64/arm64), installs the binary to `/usr/local/bin`, configures the systemd service, and starts the agent.
